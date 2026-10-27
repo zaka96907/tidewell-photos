@@ -1,0 +1,68 @@
+name: fetch-photos
+on:
+  push:
+    paths: ['.github/workflows/fetch.yml']
+  workflow_dispatch:
+permissions:
+  contents: write
+jobs:
+  fetch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Download Unsplash photos
+        run: |
+          mkdir -p photos
+          cat > list.txt <<'EOF2'
+          salmon photo-1666080440450-43ed34c065e4 rpBVmPkZdnY
+          trout photo-1683405503746-0fcbc47daaa7 jX229RhM-T0
+          bream photo-1760560077547-afcb5298eb6d UOERpk4RKz8
+          dorade photo-1706167754880-434ef5038408 WO70kq9XI9w
+          snapper photo-1761790028871-749229ae5a35 zx9T6k3jNxc
+          seabass photo-1668532696872-dc5fe74a47f7 mSF6ikPWFrA
+          fillet photo-1499125562588-29fb8a56b5d5 kC9KUtSiflw
+          fillet2 photo-1599084993091-1cb5c0721cc6 dKhkCiD4zEQ
+          fillet8 photo-1583354594735-089554367f9f CSen6H25ZWI
+          dumplings photo-1496116218417-1a781b1c416c D-vDQMTfAAU
+          dumplings2 photo-1541696432-82c6da8ce7bf wr8Ze_O-sjI
+          noodles photo-1761315601031-f31099c14dcc SNM-Ks6i3ZI
+          pho photo-1631709497146-a239ef373cf1 NFQi_2HUNRI
+          chicken photo-1788090485550-ca71c6d578fb ZK8kPP8I4rY
+          curry photo-1554054204-b2f70b09d031 ZPWR_TWZ4HA
+          bluebowl photo-1762922425398-00c2c6635dc5 89x1gsvk_Pk
+          whiteplate photo-1777994505589-75c2028c80fa _V7MPFwNpJE
+          yellowplate photo-1777994505580-33478f04fa4a 3yhkCoP0plE
+          tomatoes photo-1640958905248-fb819ea1bc6b ksVCLx3jJ5Y
+          tomatohalf photo-1615486171815-2611a6e3cd02 sgmS2e95QO0
+          basilleaf photo-1591495746097-8a92864d5c1f qcRMfoIWxRo
+          basil photo-1758657996602-717fa28bc0b7 DDKdfRe1GxA
+          chili photo-1583119022894-919a68a3d0e3 nZUQgW0FVnc
+          pepper photo-1770751857569-b74f5e74cc67 ofwfGg0nnlg
+          spice photo-1577563717655-919fc57789b4 tJBRqWigzso
+          cake photo-1577660618074-40c460c56df4 fWhF927ka5Y
+          pie photo-1633285708779-c62ea47708b9 a1f1LuWuFkE
+          dessertbowl photo-1564495584622-0bb3af6f668e N5M
+          garlic photo-1587049693270-c7560da11218 PR79IfX9Hi8
+          anise photo-1642255516075-6a9194060864 U_Zy54
+          onion photo-1587486912758-4367d2015d6c YXx2cabK4Jg
+          lemon photo-1623445535601-217ed68fe0d2 KBBDfpw_MFM
+          sauce photo-1778664305341-790ed3b2578b jOWTGHz_Ams
+          parsley photo-1562157244-c348955acf8f aLJs2qxXTdI
+          prawn photo-1657856282105-952b3c683d15 BbIwtkMFvgM
+          broccoli photo-1685504445355-0e7bdf90d415 TL6bTnQWMbk
+          EOF2
+          : > photos/CREDITS.txt
+          while read -r k id slug; do
+            [ -z "$k" ] && continue
+            curl -sSfL "https://images.unsplash.com/$id?w=1400&q=82&fm=jpg" -o "photos/$k.jpg" || echo "fail $k"
+            echo "$k.jpg https://unsplash.com/photos/$slug (Unsplash License)" >> photos/CREDITS.txt
+          done < list.txt
+          rm list.txt
+          ls -la photos
+      - name: Commit
+        run: |
+          git config user.name "photo-bot"
+          git config user.email "photo-bot@users.noreply.github.com"
+          git add photos
+          git commit -m "Add Unsplash photos" || echo nothing
+          git push
